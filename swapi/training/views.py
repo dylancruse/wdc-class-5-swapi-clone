@@ -10,7 +10,7 @@ def text_response(request):
     Return a HttpResponse with a simple text message.
     Check that the default content type of the response must be "text/html".
     """
-    pass
+    return HttpResponse("Hello World", content_type='text/html')
 
 
 def looks_like_json_response(request):
@@ -18,7 +18,7 @@ def looks_like_json_response(request):
     Return a HttpResponse with a text message containing something that looks
     like a JSON document, but it's just "text/html".
     """
-    pass
+    return HttpResponse("{'name': 'Dylan', 'language': 'Python'}")
 
 
 def simple_json_response(request):
@@ -26,14 +26,26 @@ def simple_json_response(request):
     Return an actual JSON response by setting the `content_type` of the HttpResponse
     object manually.
     """
-    pass
+    
+    obj = {
+        'name': 'Dylan',
+        'language': 'Python'
+    }
+    
+    return HttpResponse(json.dumps(obj), content_type='application/json')
 
 
 def json_response(request):
     """
     Return the same JSON document, but now using a JsonResponse instead.
     """
-    pass
+    
+    obj = {
+        'name': 'Dylan',
+        'language': 'Python'
+    }
+    
+    return JsonResponse(json.dumps(obj))
 
 
 def json_list_response(request):
@@ -44,14 +56,28 @@ def json_list_response(request):
     the JsonResponse object it order to avoid built-in validation.
     https://docs.djangoproject.com/en/2.0/ref/request-response/#jsonresponse-objects
     """
-    pass
+    obj = [
+        {
+            'name': 'Dylan',
+            'language': 'Python'
+        },
+        {
+            'name': 'Carl',
+            'language': 'JavaScript'
+        }
+    ]
+    
+    return JsonResponse(obj, safe=False)
 
 
 def json_error_response(request):
     """
     Return a JsonResponse with an error message and 400 (Bad Request) status code.
     """
-    pass
+    return JsonResponse({
+        'error': True,
+        'message': 'Error. Please try again.'
+    }, status=400)
 
 
 @csrf_exempt
@@ -61,7 +87,9 @@ def only_post_request(request):
     everything is OK, and the status code `200`. If it's a different request
     method, return a `400` response with an error message.
     """
-    pass
+    if request.method == 'POST':
+        return HttpResponse('POST request received.')
+    return HttpResponse('Error. Only POST requests allowed.', status=400)
 
 
 @csrf_exempt
@@ -70,14 +98,19 @@ def post_payload(request):
     Write a view that only accepts POST requests, and processes the JSON
     payload available in `request.body` attribute.
     """
-    pass
+    if request.method == 'POST':
+        data = str(request.body)
+        return JsonResponse(data, status=201, safe=False)
+    return HttpResponse('Error. Only POST requests allowed.', status=400)
 
 
 def custom_headers(request):
     """
     Return a JsonResponse and add a custom header to it.
     """
-    pass
+    resp = JsonResponse({'status': 'ok'}, status=201)
+    resp['Hello'] = 'World'
+    return resp
 
 
 def url_int_argument(request, first_arg):
@@ -85,7 +118,7 @@ def url_int_argument(request, first_arg):
     Write a view that receives one integer parameter in the URL, and displays it
     in the response text.
     """
-    pass
+    return HttpResponse('You entered: {}'.format(first_arg))
 
 
 def url_str_argument(request, first_arg):
@@ -93,7 +126,7 @@ def url_str_argument(request, first_arg):
     Write a view that receives one string parameter in the URL, and displays it
     in the response text.
     """
-    pass
+    return HttpResponse('You entered: {}'.format(first_arg))
 
 
 def url_multi_arguments(request, first_arg, second_arg):
@@ -101,7 +134,7 @@ def url_multi_arguments(request, first_arg, second_arg):
     Write a view that receives two parameters in the URL, and display them
     in the response text.
     """
-    pass
+    return HttpResponse('You entered: {} AND {}'.format(first_arg, second_arg))
 
 
 def get_params(request):
@@ -109,4 +142,5 @@ def get_params(request):
     Write a view that receives GET arguments and display them in the
     response text.
     """
+    
     pass
