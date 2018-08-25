@@ -99,7 +99,7 @@ def post_payload(request):
     payload available in `request.body` attribute.
     """
     if request.method == 'POST':
-        data = str(request.body)
+        data = json.loads(request.body.decode())
         return JsonResponse(data, status=201, safe=False)
     return HttpResponse('Error. Only POST requests allowed.', status=400)
 

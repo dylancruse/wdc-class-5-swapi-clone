@@ -33,10 +33,39 @@ def people_list_view(request):
         * If the view receives another HTTP method out of the ones listed
           above, return a `400` response.
 
-        * If submited payload is nos JSON valid, return a `400` response.
+        * If submited payload is not JSON valid, return a `400` response.
     """
-    pass
-
+    if request.method == 'GET':
+        try:
+            people = [serialize_people_as_json(person) for person in People.objects.all()]
+        except:
+            return JsonResponse({
+                'error': True, 
+                'msg': 'Error. Please try again.'
+            }, status = 400)
+        data = people
+        status = 200
+    elif request.method == 'POST':
+        try:
+            payload = json.loads(request.body.decode())
+            person = People.objects.create(
+                name = payload['name'],
+                homeworld = Planet.objects.get(id=payload['homeworld']),
+                height = payload['height'],
+                mass = payload['mass'],
+                hair_color = payload['hair_color']
+            )
+        except:
+            return JsonResponse({
+                'error': True, 
+                'msg': 'Error creating person. Please try again.'
+            }, status = 400)            
+        data = serialize_people_as_json(person)
+        status = 201
+    else:
+        data = {'error': True, 'msg': 'HTTP method must be GET or POST.'}
+        status = 400
+    return JsonResponse(data, status=status, safe=False)
 
 @csrf_exempt
 def people_detail_view(request, people_id):
@@ -57,6 +86,36 @@ def people_detail_view(request, people_id):
         * If the view receives another HTTP method out of the ones listed
           above, return a `400` response.
 
-        * If submited payload is nos JSON valid, return a `400` response.
+        * If submited payload is not JSON valid, return a `400` response.
     """
-    pass
+    if request.body:
+        try:
+            payload = json.loads(request.body.decode())
+        except:
+            return JsonResponse({'error': True, 'msg': 'Invalid JSON payload'},
+            status = 400)
+    
+    try:
+        person = People.objects.get(id=people_id)
+    except People.DoesNotExist:
+        return JsonResponse({'error': True, 'msg': 'Person does not exist'},
+        status = 400)    
+    
+    if request.method == 'GET':
+        data = serialize_people_as_json(person)
+        status = 200
+    elif request.method in ['PUT', 'PATCH']:
+        for field in payload:
+                setattr(person, field, payload[field])
+        data = serialize_people_as_json(person)
+        status = 200
+    elif request.method == 'DELETE':
+        deleted = People.objects.get(id=people_id).delete()
+        deleted.append({'error': False, 'msg': 'Successfully deleted.'})
+        data = deleted
+        status = 200
+    else:
+        data = {'error': True, 'message': 'HTTP method must be GET or POST.'}
+        status = 400
+        
+    return JsonResponse(data=data, status=status, safe=False)
